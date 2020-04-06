@@ -2,9 +2,6 @@ import numpy as np
 from scipy import interpolate
 from scipy.interpolate import griddata
 
-import matplotlib
-import matplotlib.pyplot as plt
-
 def lbp(proj):
     """利用28个投影数据构成的投影阵proj进行反投影成像"""
     f = []
@@ -55,5 +52,5 @@ def lbp(proj):
     f_sum = np.zeros((35, 35))
     for f0 in f:
         f_sum = f_sum + f0
-    #f_ave = f_sum / 8
-    return f_sum
+    f_ave = f_sum / 8
+    return f_ave
