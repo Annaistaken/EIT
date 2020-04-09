@@ -14,37 +14,7 @@
    <string>EIT</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="QGroupBox" name="groupBox">
-      <property name="minimumSize">
-       <size>
-        <width>1500</width>
-        <height>850</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>1500</width>
-        <height>850</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>26</pointsize>
-        <weight>50</weight>
-        <bold>false</bold>
-       </font>
-      </property>
-      <property name="title">
-       <string/>
-      </property>
-      <property name="flat">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
-   </layout>
+   <layout class="QGridLayout" name="gridLayout"/>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -61,6 +31,8 @@
     </property>
     <addaction name="actionRefe"/>
     <addaction name="actionData"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuRTR">
     <property name="title">
@@ -77,8 +49,25 @@
     </property>
     <addaction name="actionFrameNow"/>
    </widget>
+   <widget class="QMenu" name="menuAlgorithm">
+    <property name="title">
+     <string>Algorithm</string>
+    </property>
+    <addaction name="actionLBP"/>
+    <addaction name="actionSVD"/>
+    <addaction name="actionNormalized_Sensitivity"/>
+    <addaction name="separator"/>
+    <addaction name="actionCG"/>
+    <addaction name="actionBFGS"/>
+    <addaction name="actionNewton_CG"/>
+    <addaction name="actionTNC"/>
+    <addaction name="separator"/>
+    <addaction name="actionTV_Regularization"/>
+    <addaction name="actionLasso"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuRTR"/>
+   <addaction name="menuAlgorithm"/>
    <addaction name="menuSave"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -115,6 +104,61 @@
   <action name="actionStop">
    <property name="text">
     <string>Stop</string>
+   </property>
+  </action>
+  <action name="actionProjNow">
+   <property name="text">
+    <string>ProjNow</string>
+   </property>
+  </action>
+  <action name="actionSVD">
+   <property name="text">
+    <string>SVD</string>
+   </property>
+  </action>
+  <action name="actionLBP">
+   <property name="text">
+    <string>LBP</string>
+   </property>
+  </action>
+  <action name="actionNormalized_Sensitivity">
+   <property name="text">
+    <string>Normalized Sensitivity</string>
+   </property>
+  </action>
+  <action name="actionCG">
+   <property name="text">
+    <string>CG</string>
+   </property>
+  </action>
+  <action name="actionBFGS">
+   <property name="text">
+    <string>BFGS</string>
+   </property>
+  </action>
+  <action name="actionNewton_CG">
+   <property name="text">
+    <string>Newton-CG</string>
+   </property>
+  </action>
+  <action name="actionTNC">
+   <property name="text">
+    <string>TNC</string>
+   </property>
+  </action>
+  <action name="actionTV_Regularization">
+   <property name="text">
+    <string>TV Regularization</string>
+   </property>
+  </action>
+  <action name="actionLasso">
+   <property name="text">
+    <string>Lasso</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
    </property>
   </action>
  </widget>

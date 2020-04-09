@@ -6,14 +6,19 @@ import os
 import sys
 import quamash
 import asyncio
+from scipy.optimize import minimize
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 from matplotlib.colors import Normalize
 from matplotlib.patches import Polygon
 from matplotlib.tri import Triangulation
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 
+from lbp import lbp_new
 from myfigure import MyFigure
 from gui import Ui_MainWindow
 
@@ -26,18 +31,18 @@ class EmitThread(QThread):
         super().__init__()
     def run(self):
         while ui.BLE_status == 1:
-            self.signal.emit(ui.proj)
+            self.signal.emit(ui.projnow)
             time.sleep(1)
 
 class MyWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MyWindow, self).__init__()
         self.setupUi(self)
-        self.setupBLE()
         self.statusBar().showMessage('Ready')
-        #image
-        #self.jacobian = np.zeros((28, 576))
-        self.jacobian = np.array([[9.7374e-04, 8.9143e-04, 6.9856e-04, 7.8087e-04, 2.1114e-03,
+        self.setupBLE()
+        """reconstruction"""
+        #self.S = np.zeros((28, 576))
+        self.S = np.array([[9.7374e-04, 8.9143e-04, 6.9856e-04, 7.8087e-04, 2.1114e-03,
         1.1603e-03, 1.1541e-03, 1.8713e-03, 2.1923e-03, 1.4185e-03,
         8.9469e-04, 1.3520e-03, 6.7298e-04, 8.6177e-04, 1.4739e-03,
         1.1088e-03, 2.6788e-03, 2.7599e-03, 8.4574e-04, 1.1395e-03,
@@ -3285,7 +3290,9 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         2.4173e-03, 4.7107e-03, 1.1362e-02, 4.2336e-02, 5.9756e-01,
         7.5920e-01, 1.0323e-01, 5.8673e-02, 5.9818e-02, 1.1883e-01,
         1.0609e+00]])
-        self.inv_j = np.linalg.pinv(self.jacobian)
+        self.inv_S = np.linalg.pinv(self.S) #SVD算法
+        self.select_alg = 1 #默认调用SVD灵敏度矩阵法
+        """image"""
         self.elems = np.array([[1, 2, 3],
                           [1, 4, 3],
                           [1, 4, 5],
@@ -4178,26 +4185,53 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.triang = Triangulation(self.nodes[:, 0], self.nodes[:, 1])
         self.cmap = plt.cm.RdBu.reversed()
         self.norm = matplotlib.colors.Normalize(vmin=-1, vmax=1)
-        #实例化figure
+        """实例化figure"""
+        index_ls = ['AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'CD', 'CE', 'CF',
+                         'CG', 'CH', 'DE', 'DF', 'DG', 'DH', 'EF', 'EG', 'EH', 'FG', 'FH', 'GH']
+        notate = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+        self.theta = [2 * np.pi / 4, 1 * np.pi / 4, 0 * np.pi / 4, 7 * np.pi / 4, 6 * np.pi / 4, 5 * np.pi / 4,
+                      4 * np.pi / 4, 3 * np.pi / 4]
+        self.gs = GridSpec(3, 2)
         self.F = MyFigure(width=16, height=9, dpi=100)
-        #self.gridlayout = QGridLayout(self.groupBox)
+        self.ax1 = self.F.fig.add_subplot(self.gs[0, :])
+        plt.xticks(range(28), index_ls)
+        plt.yticks([])
+        self.ax2 = self.F.fig.add_subplot(self.gs[1:3, 0], aspect=1)
+        plt.triplot(Triangulation(self.nodes[:, 0], self.nodes[:, 1]), linewidth=0.6, color='black')
+        plt.axis('off')
+        self.ax3 = self.F.fig.add_subplot(self.gs[1:3, 1], projection='polar', aspect=1)
+        for i in np.arange(8):
+            plt.annotate(notate[i], xy=(self.theta[i], 1), xytext=(self.theta[i], 1.1), xycoords='data')
+        plt.axis('off')
+        plt.tight_layout()
+
         self.gridLayout.addWidget(self.F, 0, 1)
-        self.theta = [2 * np.pi / 4, 1 * np.pi / 4, 0 * np.pi / 4, 7 * np.pi / 4, 6 * np.pi / 4, 5 * np.pi / 4, 4 * np.pi / 4, 3 * np.pi / 4]
-        #实例化Emit对象
+        """实例化Emit对象"""
         self.emit_thread = EmitThread()
         self.emit_thread.signal.connect(self.image)
-        #signal & slot
-        self.refedata = np.zeros((28,1))
-        self.projdata = np.zeros((28,1))
-        self.proj = np.zeros((28, 1))
-        #self.actionJacobian_Mat.triggered.connect(self.jacobian)
+        self.refedata = np.zeros(28)
+        self.projdata = np.zeros(28)
+        self.projnow = np.zeros(28)
+        self.proj_d = np.zeros(28)
+        """signal & slot"""
         self.actionRefe.triggered.connect(self.loadrefe)
         self.actionData.triggered.connect(self.loadproj)
-        self.actionFrameNow.triggered.connect(self.save)
         self.actionOpenBLE.triggered.connect(self.openble)
         self.actionNowForRefe.triggered.connect(self.nowforRefe)
         self.actionRun.triggered.connect(self.emit_thread.start)
         self.actionStop.triggered.connect(self.stop)
+        self.actionFrameNow.triggered.connect(self.save)
+        #Algorithm
+        self.actionLBP.triggered.connect(lambda:self.algorithm(0))
+        self.actionSVD.triggered.connect(lambda:self.algorithm(1))
+        self.actionNormalized_Sensitivity.triggered.connect(lambda:self.algorithm(2))
+        self.actionCG.triggered.connect(lambda:self.algorithm(3))
+        self.actionBFGS.triggered.connect(lambda:self.algorithm(4))
+        self.actionNewton_CG.triggered.connect(lambda:self.algorithm(5))
+        self.actionTNC.triggered.connect(lambda:self.algorithm(6))
+        self.actionTV_Regularization.triggered.connect(lambda:self.algorithm(7))
+        self.actionLasso.triggered.connect(lambda:self.algorithm(8))
+        #self.actionExit.triggered.connect(self.)
     def setupBLE(self):
         self.BLE_status = 1
         self.address = "DF:5C:10:23:42:57"
@@ -4236,7 +4270,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
     def callback(self, sender, data):
         for i in np.arange(28):
             if sender == self.Char_UUID[i]:
-                self.proj[i] = int.from_bytes(data, byteorder='big')
+                self.projnow[i] = int.from_bytes(data, byteorder='big')
                 break
         """if sender == self.Char1_UUID:
             self.proj[0, 0] = self.proj[1, 0] = int.from_bytes(data, byteorder='big')
@@ -4347,39 +4381,124 @@ class MyWindow(QMainWindow, Ui_MainWindow):
     def save(self):
         now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         plt.savefig(now+".png")
-        np.savetxt(now+".txt", self.proj)
+        np.savetxt(now+".txt", self.proj_d)
+    def algorithm(self, n):
+        self.select_alg = n
+    def lbp(self):
+        backproj = lbp_new(self.proj_d)
+        return backproj
+    def svd(self):
+        elem_data = np.dot(self.inv_S, self.proj_d)
+        return elem_data
+    def norm_sens(self):
+        W = np.zeros((576, 576))
+        for i in np.arange(576):
+            S2 = self.S ** 2
+            S2 = S2.sum(axis=0)
+            S2 = S2 ** (-0.5)
+            W[i, i] = S2[i]
+        A = np.dot(W, np.linalg.pinv(np.dot(self.S, W)))
+        elem_data = np.dot(A, self.proj_d)
+        return elem_data
+    def cg(self):
+        x0 = np.zeros(576)
+        elem = minimize(self.fun, x0, method='CG', jac=self.jac, options={'disp': False})
+        return elem.x
+    def bfgs(self):
+        x0 = np.zeros(576)
+        elem = minimize(self.fun, x0, method='BFGS', jac=self.jac, options={'disp': False})
+        return elem.x
+    def nt_cg(self):
+        x0 = np.zeros(576)
+        elem = minimize(self.fun, x0, method='Newton-CG', jac=self.jac, hess=self.hes, options={'disp': False})
+        return elem.x
+    def tnc(self):
+        x0 = np.zeros(576)
+        elem = minimize(self.fun, x0, method='TNC', jac=self.jac, options={'disp': False})
+        return elem.x
+    def tv(self):
+        clf = Ridge(alpha=0.00001)
+        clf.fit(self.S, self.proj_d)
+        return clf.coef_
+    def lasso(self):
+        clf = Lasso(alpha=0.0000001)
+        clf.fit(self.S, self.proj_d)
+        return clf.coef_
+    def fun(self, x):
+        min = 0.5 * np.dot((np.dot(self.S, x) - self.proj_d).T, np.dot(self.S, x) - self.proj_d)
+        return min
+    def jac(self, x):
+        return np.dot(self.S.T, np.dot(self.S, x) - self.proj_d)
+    def hes(self, x):
+        return np.dot(self.S.T, self.S)
     def image(self, proj):
-        proj = proj-self.refedata
-        proj = proj / np.max(np.abs(proj))
         plt.ion()
-        #ax1
+        self.proj_d = proj-self.refedata
+        """ax1"""
         #proj_triu = np.triu(proj, 0)
         #proj28 = np.array([proj[i][j] for i in range(7) for j in np.arange(i, 7)])
-        self.F.ax1.bar(range(28), proj, color='b')
-        #ax3
+        self.ax1.bar(range(28), self.proj_d, color='b')
+        """ax3"""
         #norm3 = matplotlib.colors.Normalize(vmin=np.min(proj), vmax=np.max(proj))
+        try:
+            proj_n = self.proj_d / np.max(np.abs(self.proj_d))
+        except:
+            proj_n = self.proj_d
         n=0
         for i in np.arange(8):
             for j in np.arange(i+1,8):
-                self.F.ax3.plot([self.theta[i], self.theta[j]], [1,1], color=self.cmap(self.norm(proj[n])))
-                self.F.ax3.scatter([self.theta[i], self.theta[j]], [1,1], color='b')
+                self.ax3.plot([self.theta[i], self.theta[j]], [1,1], color=self.cmap(self.norm(proj_n[n])))
+                self.ax3.scatter([self.theta[i], self.theta[j]], [1,1], color='b')
                 n=n+1
-        #ax2
-        """backproj = lbp(proj)
-        alphas = Normalize(0, np.abs(backproj).max() / 2, clip=True)(np.abs(backproj))
-        alphas = np.clip(alphas, 0.6, 1)
-        self.F.ax2.imshow(backproj.T, aspect=1, alpha=alphas, cmap=matplotlib.cm.RdBu, vmin=-np.max(np.abs(backproj)),
-                          vmax=np.max(np.abs(backproj)), origin='lower', interpolation='antialiased')"""
-
-        elem_data = np.dot(self.inv_j, proj)
-        elem_data = elem_data / np.max(np.abs(elem_data))
+        """ax2"""
+        if self.select_alg ==0:
+            backproj = self.lbp()
+            alphas = Normalize(0, np.abs(backproj).max() / 2, clip=True)(np.abs(backproj))
+            alphas = np.clip(alphas, 0.6, 1)
+            self.ax2.cla()
+            self.F.fig.add_subplot(self.gs[1:3, 0], aspect=1)
+            self.ax2.imshow(backproj.T, aspect=1, alpha=alphas, cmap=matplotlib.cm.RdBu.reversed(),
+                                         vmin=-np.max(np.abs(backproj)),
+                                         vmax=np.max(np.abs(backproj)), origin='lower', interpolation='antialiased')
+            plt.axis('off')
+            plt.show()
+            return
+        elif self.select_alg == 1:
+            elem_data = self.svd()
+        elif self.select_alg == 2:
+            elem_data = self.norm_sens()
+        elif self.select_alg == 3:
+            elem_data = self.cg()
+        elif self.select_alg == 4:
+            elem_data = self.bfgs()
+        elif self.select_alg == 5:
+            elem_data = self.nt_cg()
+        elif self.select_alg == 6:
+            elem_data = self.tnc()
+        elif self.select_alg == 7:
+            elem_data = self.tv()
+        elif self.select_alg == 8:
+            elem_data = self.lasso()
+        try:
+            elem_data = elem_data / np.max(np.abs(elem_data))
+        except:
+            pass
+        self.ax2.cla()
+        self.ax2 = self.F.fig.add_subplot(self.gs[1:3, 0], aspect=1)
         for i in np.arange(576):
             xs = self.triang.x[self.elems[i] - 1]
             ys = self.triang.y[self.elems[i] - 1]
             polygon = Polygon(list(zip(xs, ys)), facecolor=self.cmap(self.norm(elem_data[i])))
-            self.F.ax2.add_patch(polygon)
+            self.ax2.add_patch(polygon)
+        self.ax2.set_xticks([-1,1])
+        self.ax2.set_yticks([-1,1])
+        #self.ax2.get_xaxis().set_visible(False)
+        #self.ax2.get_yaxis().set_visible(False)
+        plt.axis('off')
         plt.show()
         #QApplication.processEvents()
+
+
 ui = MyWindow()
 ui.show()
 sys.exit(app.exec_())
