@@ -53,6 +53,8 @@
     <property name="title">
      <string>Algorithm</string>
     </property>
+    <addaction name="actionSensitivityMat"/>
+    <addaction name="separator"/>
     <addaction name="actionLBP"/>
     <addaction name="actionSVD"/>
     <addaction name="actionNormalized_Sensitivity"/>
@@ -62,7 +64,7 @@
     <addaction name="actionNewton_CG"/>
     <addaction name="actionTNC"/>
     <addaction name="separator"/>
-    <addaction name="actionTV_Regularization"/>
+    <addaction name="actionTikhonov"/>
     <addaction name="actionLasso"/>
    </widget>
    <addaction name="menuFile"/>
@@ -146,9 +148,9 @@
     <string>TNC</string>
    </property>
   </action>
-  <action name="actionTV_Regularization">
+  <action name="actionTikhonov">
    <property name="text">
-    <string>TV Regularization</string>
+    <string>Tikhonov regularization</string>
    </property>
   </action>
   <action name="actionLasso">
@@ -159,6 +161,11 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionSensitivityMat">
+   <property name="text">
+    <string>SensitivityMat</string>
    </property>
   </action>
  </widget>
