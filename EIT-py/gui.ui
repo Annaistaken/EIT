@@ -53,23 +53,30 @@
     <property name="title">
      <string>Algorithm</string>
     </property>
-    <addaction name="actionSensitivityMat"/>
-    <addaction name="separator"/>
     <addaction name="actionLBP"/>
     <addaction name="actionSVD"/>
     <addaction name="actionNormalized_Sensitivity"/>
     <addaction name="separator"/>
     <addaction name="actionCG"/>
     <addaction name="actionBFGS"/>
-    <addaction name="actionNewton_CG"/>
-    <addaction name="actionTNC"/>
+    <addaction name="actionSLSQP"/>
+    <addaction name="actionLanczos"/>
     <addaction name="separator"/>
     <addaction name="actionTikhonov"/>
     <addaction name="actionLasso"/>
    </widget>
+   <widget class="QMenu" name="menuDisplay">
+    <property name="title">
+     <string>Display</string>
+    </property>
+    <addaction name="actionFE_Filling"/>
+    <addaction name="actionShading_Interp"/>
+    <addaction name="actionContour_Filling"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuRTR"/>
    <addaction name="menuAlgorithm"/>
+   <addaction name="menuDisplay"/>
    <addaction name="menuSave"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -138,14 +145,14 @@
     <string>BFGS</string>
    </property>
   </action>
-  <action name="actionNewton_CG">
+  <action name="actionSLSQP">
    <property name="text">
-    <string>Newton-CG</string>
+    <string>SLSQP</string>
    </property>
   </action>
-  <action name="actionTNC">
+  <action name="actionLanczos">
    <property name="text">
-    <string>TNC</string>
+    <string>Lanczos</string>
    </property>
   </action>
   <action name="actionTikhonov">
@@ -166,6 +173,31 @@
   <action name="actionSensitivityMat">
    <property name="text">
     <string>SensitivityMat</string>
+   </property>
+  </action>
+  <action name="actionFE_Filling">
+   <property name="text">
+    <string>FE Filling</string>
+   </property>
+  </action>
+  <action name="actionNephogram">
+   <property name="text">
+    <string>Nephogram</string>
+   </property>
+  </action>
+  <action name="actionIsogram">
+   <property name="text">
+    <string>Isogram</string>
+   </property>
+  </action>
+  <action name="actionShading_Interp">
+   <property name="text">
+    <string>Shading Interp</string>
+   </property>
+  </action>
+  <action name="actionContour_Filling">
+   <property name="text">
+    <string>Contour Filling</string>
    </property>
   </action>
  </widget>

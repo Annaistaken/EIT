@@ -907,7 +907,7 @@ cmap = plt.cm.RdBu.reversed()
 norm = matplotlib.colors.Normalize(vmin=-1, vmax=1)
 
 refedata = np.loadtxt(r'D:\Proj\EIT\EIT-py\data\refedata.csv', delimiter=",")
-projdata = np.loadtxt(r'D:\Proj\EIT\EIT-py\data\projdata1.csv', delimiter=",")
+projdata = np.loadtxt(r'D:\Proj\EIT\EIT-py\data\projdata1-n.csv', delimiter=",")
 proj = projdata-refedata
 jacobian = np.loadtxt(r'D:\Proj\EIT\EIT-py\data\jacobian.csv', delimiter=",")
 
@@ -923,12 +923,22 @@ elem_data = np.dot(A, proj)"""
 inv_j = np.linalg.pinv(jacobian)
 elem_data = np.dot(inv_j, proj)
 elem_data = elem_data/np.max(np.abs(elem_data))
-alphas = Normalize(0, 0.5, clip=True)(np.abs(elem_data))###########
-elem_data = elem_data * alphas##########
+alphas = Normalize(0, 0.3, clip=True)(np.abs(elem_data))
+elem_data = elem_data * alphas
 #norm = matplotlib.colors.Normalize(vmin=np.min(elem_data), vmax=np.max(elem_data))
 
 #ax.cla()
-"""单元填充图"""
+"""
+trifinder = triang.get_trifinder()
+def motion_notify(event):
+    if event.inaxes is None:
+        tri = -1
+    else:
+        tri = trifinder(event.xdata, event.ydata)
+    #update_polygon(tri)
+    plt.title(elem_data[tri])
+    event.canvas.draw()"""
+#单元填充图
 ax1 = fig.add_subplot(2,2,1,aspect=1)
 ax1.set_xticks([-1,1])
 ax1.set_yticks([-1,1])
@@ -937,15 +947,17 @@ for i in np.arange(576):
     ys = triang.y[elems[i] - 1]
     polygon = Polygon(list(zip(xs, ys)), facecolor=cmap(norm(elem_data[i])))
     ax1.add_patch(polygon)
+#plt.gcf().canvas.mpl_connect('motion_notify_event', motion_notify)
+#ax2.tripcolor(triang, elem_data, shading='flat')
 
-"""求elem坐标中心点，作为已知导入"""
+#求elem坐标中心点，作为已知导入
 point = np.zeros((576, 2))
 for i in np.arange(576):
     xs = triang.x[elems[i] - 1]
     ys = triang.y[elems[i] - 1]
     p = np.array(list(zip(xs, ys)))
     point[i] = np.mean(p, axis=0)
-"""插值热图"""
+#插值热图
 ax2 = fig.add_subplot(2,2,2,aspect=1)
 ax2.set_xticks([])
 ax2.set_yticks([])
@@ -953,16 +965,16 @@ grid_x, grid_y = np.mgrid[-1:1:50j, -1:1:50j]
 #img = griddata(point, elem_data, (grid_x, grid_y), method='cubic',fill_value = 0)
 img = griddata(point, elem_data, (grid_x, grid_y), method='cubic')
 #ax2.imshow(img, aspect=1, cmap=matplotlib.cm.RdBu.reversed(), vmin=np.min(elem_data), vmax=np.max(elem_data), origin='lower', interpolation='bicubic')
-ax2.imshow(img, aspect=1, cmap=matplotlib.cm.RdBu.reversed(), norm = norm, origin='lower', interpolation='bicubic')
+pos = ax2.imshow(img.T, aspect=1, cmap=matplotlib.cm.RdBu.reversed(), norm = norm, origin='lower', interpolation='bicubic')
 
-"""等值线填充"""
+#等值线填充
 ax3 = fig.add_subplot(2,2,3,aspect=1)
 ax3.set_xticks([])
 ax3.set_yticks([])
 ax3.tricontour(point[:,0], point[:,1], elem_data, levels=5, linewidths=0.5, colors='k')
-cntr3 = ax3.tricontourf(point[:,0], point[:,1], elem_data, cmap="RdBu_r", norm = norm, levels=5)
+ax3.tricontourf(point[:,0], point[:,1], elem_data, cmap="RdBu_r", norm = norm, levels=5)
 
-"""等值线轮廓"""
+#等值线轮廓
 ax4 = fig.add_subplot(2,2,4,aspect=1)
 ax4.set_xticks([])
 ax4.set_yticks([])
