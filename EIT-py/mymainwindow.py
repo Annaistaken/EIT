@@ -17,7 +17,7 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.colors import Normalize
 from matplotlib.patches import Polygon
 from matplotlib.tri import Triangulation
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal, QCoreApplication
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 
 from myfigure import MyFigure
@@ -6492,25 +6492,40 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.cmap = plt.cm.RdBu.reversed()
         self.norm = matplotlib.colors.Normalize(vmin=-1, vmax=1)
         """实例化MyFigure"""
-        index_ls = ['AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'CD', 'CE', 'CF',
+        self.index_ls = ['AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'CD', 'CE', 'CF',
                          'CG', 'CH', 'DE', 'DF', 'DG', 'DH', 'EF', 'EG', 'EH', 'FG', 'FH', 'GH']
-        notate = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+        self.notate = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
         self.theta = [2 * np.pi / 4, 1 * np.pi / 4, 0 * np.pi / 4, 7 * np.pi / 4, 6 * np.pi / 4, 5 * np.pi / 4,
                       4 * np.pi / 4, 3 * np.pi / 4]
         self.gs = GridSpec(3, 2)
         self.F = MyFigure(width=16, height=9, dpi=100)
-        self.ax1 = self.F.fig.add_subplot(self.gs[0, :])
-        plt.xticks(range(28), index_ls)
-        plt.yticks([])
+        #ax1
+        self.ax1 = self.F.fig.add_subplot(self.gs[0, :], aspect='auto')
+        plt.xticks(range(28), self.index_ls)
+        plt.yticks([-1, 0, 1], c='none')
+        plt.gca().xaxis.set_ticks_position('bottom')
+        plt.gca().spines['bottom'].set_position(('data', 0))
+        plt.gca().spines['right'].set_color('none')
+        plt.gca().spines['left'].set_color('none')
+        plt.gca().spines['top'].set_color('none')
+        #ax2
         self.ax2 = self.F.fig.add_subplot(self.gs[1:3, 0], aspect=1)
         plt.triplot(Triangulation(self.nodes[:, 0], self.nodes[:, 1]), linewidth=0.6, color='black')
         plt.axis('off')
+        #ax3
         self.ax3 = self.F.fig.add_subplot(self.gs[1:3, 1], projection='polar', aspect=1)
         for i in np.arange(8):
-            plt.annotate(notate[i], xy=(self.theta[i], 1), xytext=(self.theta[i], 1.1), xycoords='data')
+            plt.annotate(self.notate[i], xy=(self.theta[i], 1), xytext=(self.theta[i], 1.1), xycoords='data')
         plt.axis('off')
+        n = 0
+        for i in np.arange(8):
+            for j in np.arange(i + 1, 8):
+                self.ax3.plot([self.theta[i], self.theta[j]], [1, 1], color='dimgray')
+                self.ax3.scatter([self.theta[i], self.theta[j]], [1, 1], color='b')
+                n = n + 1
         plt.tight_layout()
         self.gridLayout.addWidget(self.F, 0, 1)
+        plt.ion()
         """实例化Emit对象"""
         self.emit_thread = EmitThread()
         self.emit_thread.signal.connect(self.image)
@@ -6540,7 +6555,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.actionLanczos.triggered.connect(lambda:self.algorithm(6))
         self.actionTikhonov.triggered.connect(lambda:self.algorithm(7))
         self.actionLasso.triggered.connect(lambda:self.algorithm(8))
-        #self.actionExit.triggered.connect(self.)
+        self.actionExit.triggered.connect(QCoreApplication.instance().quit)
     def set_A(self):
         W = np.zeros((576, 576))
         for i in np.arange(576):
@@ -6754,15 +6769,29 @@ class MyWindow(QMainWindow, Ui_MainWindow):
     def hes(self, x):
         return np.dot(self.S.T, self.S)
     def image(self, proj):
-        plt.ion()
         self.proj_d = proj-self.refedata
+        plt.clf()
         #ax1
-        self.ax1.bar(range(np.size(self.proj_d)), self.proj_d, color='b')
+        #self.ax1.cla()
+        self.ax1 = self.F.fig.add_subplot(self.gs[0, :], aspect='auto')
+        self.ax1.bar(range(np.size(self.proj_d)), self.proj_d, color='deepskyblue')
+        plt.xticks(range(28), self.index_ls)
+        plt.yticks([-1,0,1], c='none')
+        plt.gca().xaxis.set_ticks_position('bottom')
+        plt.gca().spines['bottom'].set_position(('data', 0))
+        plt.gca().spines['right'].set_color('none')
+        plt.gca().spines['left'].set_color('none')
+        plt.gca().spines['top'].set_color('none')
         #ax3
         try:
             proj_n = self.proj_d / np.max(np.abs(self.proj_d))
         except:
             proj_n = self.proj_d
+        #self.ax3.cla()
+        self.ax3 = self.F.fig.add_subplot(self.gs[1:3, 1], projection='polar', aspect=1)
+        for i in np.arange(8):
+            self.ax3.annotate(self.notate[i], xy=(self.theta[i], 1), xytext=(self.theta[i], 1.1), xycoords='data')
+        plt.axis('off')
         n=0
         for i in np.arange(8):
             for j in np.arange(i+1,8):
@@ -6806,7 +6835,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         except:
             print('fail to normalize elem_data')
             pass
-        self.ax2.cla()
+        #self.ax2.cla()
         self.ax2 = self.F.fig.add_subplot(self.gs[1:3, 0], aspect=1)
         if self.select_disp == 0:
             for i in np.arange(576):
@@ -6826,8 +6855,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.ax2.set_yticks([-1,1])
         plt.axis('off')
         plt.show()
-        #QApplication.processEvents()
-
+        QApplication.processEvents()
 
 ui = MyWindow()
 ui.show()
