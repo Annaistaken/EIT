@@ -6,9 +6,9 @@ import os
 import sys
 import quamash
 import asyncio
-import sklearn.utils._cython_blas
 from scipy.interpolate import griddata
 from scipy.optimize import minimize
+import sklearn.utils._cython_blas
 from sklearn.linear_model import Ridge
 from sklearn.linear_model import Lasso
 import matplotlib
@@ -6754,7 +6754,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         elem = minimize(self.fun, x0, method='trust-krylov', jac=self.jac, hess=self.hes, options={'disp': True})
         return elem.x
     def tikhonov(self):
-        clf = Ridge(alpha=0.000001)
+        clf = Ridge(alpha=0.001)
         clf.fit(self.S, self.proj_d)
         return clf.coef_
     def lasso(self):
@@ -6830,7 +6830,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
             elem_data = self.lasso()
         try:
             elem_data = elem_data / np.max(np.abs(elem_data))
-            alphas = Normalize(0, 0.3, clip=True)(np.abs(elem_data))
+            alphas = Normalize(0, 0.5, clip=True)(np.abs(elem_data))
             elem_data = elem_data * alphas
         except:
             print('fail to normalize elem_data')
