@@ -5022,7 +5022,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.set_A()
         self.select_alg = 1 #默认调用SVD灵敏度矩阵法
         """有限元剖分及显示"""
-        self.select_disp = 1
+        self.select_disp = 0
         self.tripoints = np.array([[ 0.02777767,  0.02777767],
        [ 0.02777767, -0.02777767],
        [-0.02777767, -0.02777767],
@@ -6489,6 +6489,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
                           [-2.5882e-01, 9.6593e-01],
                           [-1.3053e-01, 9.9144e-01]])
         self.triang = Triangulation(self.nodes[:, 0], self.nodes[:, 1])
+        self.trifinder = self.triang.get_trifinder()
         self.cmap = plt.cm.RdBu.reversed()
         self.norm = matplotlib.colors.Normalize(vmin=-1, vmax=1)
         """实例化MyFigure"""
@@ -6512,6 +6513,10 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.ax2 = self.F.fig.add_subplot(self.gs[1:3, 0], aspect=1)
         plt.triplot(Triangulation(self.nodes[:, 0], self.nodes[:, 1]), linewidth=0.6, color='black')
         plt.axis('off')
+        #match
+        self.elem_data = np.zeros(576)
+        self.match = np.loadtxt(r'D:\Proj\EIT\EIT-py\data\match.csv', delimiter=",").astype(int)
+        plt.gcf().canvas.mpl_connect('motion_notify_event', self.motion_notify)
         #ax3
         self.ax3 = self.F.fig.add_subplot(self.gs[1:3, 1], projection='polar', aspect=1)
         for i in np.arange(8):
@@ -6832,6 +6837,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
             elem_data = elem_data / np.max(np.abs(elem_data))
             alphas = Normalize(0, 0.5, clip=True)(np.abs(elem_data))
             elem_data = elem_data * alphas
+            self.elem_data = elem_data
         except:
             print('fail to normalize elem_data')
             pass
@@ -6857,6 +6863,14 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         plt.show()
         QApplication.processEvents()
 
+    def motion_notify(self,event):
+        if event.inaxes==self.ax2:
+            tri = self.trifinder(event.xdata, event.ydata)
+        else:
+            tri = -1
+        self.ax2.set_title(self.elem_data[self.match[tri]])
+        event.canvas.draw()
+        QApplication.processEvents()
 ui = MyWindow()
 ui.show()
 sys.exit(app.exec_())
