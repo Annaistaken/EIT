@@ -6860,6 +6860,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.ax2.set_xticks([-1,1])
         self.ax2.set_yticks([-1,1])
         plt.axis('off')
+        self.F.fig.colorbar(matplotlib.cm.ScalarMappable(norm=self.norm, cmap="RdBu_r"), ax=self.ax2)
         plt.show()
         QApplication.processEvents()
 
@@ -6868,7 +6869,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
             tri = self.trifinder(event.xdata, event.ydata)
         else:
             tri = -1
-        self.ax2.set_title(self.elem_data[self.match[tri]])
+        self.ax2.set_title(np.around(self.elem_data[self.match[tri]], decimals=4))
         event.canvas.draw()
         QApplication.processEvents()
 ui = MyWindow()
