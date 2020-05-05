@@ -6514,9 +6514,12 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         plt.triplot(Triangulation(self.nodes[:, 0], self.nodes[:, 1]), linewidth=0.6, color='black')
         plt.axis('off')
         #match
+        self.cb = self.F.fig.colorbar(matplotlib.cm.ScalarMappable(norm=self.norm, cmap="RdBu_r"), ax=self.ax2)
+        self.cb.set_ticks([-1, 1])
         self.elem_data = np.zeros(576)
         self.match = np.loadtxt(r'D:\Proj\EIT\EIT-py\data\match.csv', delimiter=",").astype(int)
         plt.gcf().canvas.mpl_connect('motion_notify_event', self.motion_notify)
+
         #ax3
         self.ax3 = self.F.fig.add_subplot(self.gs[1:3, 1], projection='polar', aspect=1)
         for i in np.arange(8):
@@ -6860,7 +6863,8 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.ax2.set_xticks([-1,1])
         self.ax2.set_yticks([-1,1])
         plt.axis('off')
-        self.F.fig.colorbar(matplotlib.cm.ScalarMappable(norm=self.norm, cmap="RdBu_r"), ax=self.ax2)
+        self.cb = self.F.fig.colorbar(matplotlib.cm.ScalarMappable(norm=self.norm, cmap="RdBu_r"), ax=self.ax2)
+        self.cb.set_ticks([-1, 1])
         plt.show()
         QApplication.processEvents()
 
@@ -6869,9 +6873,12 @@ class MyWindow(QMainWindow, Ui_MainWindow):
             tri = self.trifinder(event.xdata, event.ydata)
         else:
             tri = -1
-        self.ax2.set_title(np.around(self.elem_data[self.match[tri]], decimals=4))
+        #self.ax2.set_title(np.around(self.elem_data[self.match[tri]], decimals=4))
+        self.cb.set_ticks([-1, np.around(self.elem_data[self.match[tri]], decimals=4), 1])
         event.canvas.draw()
         QApplication.processEvents()
+
+
 ui = MyWindow()
 ui.show()
 sys.exit(app.exec_())
