@@ -31,9 +31,21 @@ class EmitThread(QThread):
     def __init__(self):
         super().__init__()
     def run(self):
+        self.statusBar().showMessage('正在实时成像')
         while ui.BLE_status == 1:
             self.signal.emit(ui.projnow)
             time.sleep(1)
+class saveThread(QThread):
+    def __init__(self):
+        super().__init__()
+    def run(self):
+        data10 = ui.projnow
+        for num in np.arange(9):
+            time.sleep(1)
+            data10 = np.c_[data10, ui.projnow]
+        filepath, filetype = QFileDialog.getSaveFileName(ui, 'save data×10', os.getcwd(), "Text Files(*.csv)")
+        np.savetxt(filepath, data10)
+        ui.statusBar().showMessage('10组数据采集完成')
 
 class MyWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -6537,10 +6549,11 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         """实例化Emit对象"""
         self.emit_thread = EmitThread()
         self.emit_thread.signal.connect(self.image)
-        self.refedata = np.zeros(28)
-        self.projdata = np.zeros(28)
-        self.projnow = np.zeros(28)
-        self.proj_d = np.zeros(28)
+        self.refedata = np.zeros(28)    #空场参考值
+        self.projdata = np.zeros(28)    #历史测量值
+        self.projnow = np.zeros(28)     #BLE实时测量值
+        self.proj_d = np.zeros(28)      #边界值差分
+        self.save_thread = saveThread() #连续测量10组实时数据
         """signal & slot"""
         self.actionRefe.triggered.connect(self.loadrefe)
         self.actionData.triggered.connect(self.loadproj)
@@ -6548,7 +6561,8 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.actionNowForRefe.triggered.connect(self.nowforRefe)
         self.actionRun.triggered.connect(self.emit_thread.start)
         self.actionStop.triggered.connect(self.stop)
-        self.actionFrameNow.triggered.connect(self.save)
+        self.actionFrameNow.triggered.connect(self.savenow)
+        self.actionBLEdata.triggered.connect(self.save_thread.start)
         #display
         self.actionFE_Filling.triggered.connect(lambda: self.display(0))
         self.actionShading_Interp.triggered.connect(lambda: self.display(1))
@@ -6678,9 +6692,10 @@ class MyWindow(QMainWindow, Ui_MainWindow):
             for i in np.arange(28):
                 await self.client.start_notify(self.Char_UUID[i], self.callback)
             self.BLE_status = 1
-            QMessageBox.information(self, '提示', 'BLE已打开', QMessageBox.Ok)
+            QMessageBox.information(self, '提示', 'BLE已连接', QMessageBox.Ok)
+            self.statusBar().showMessage('BLE连接成功')
         except:
-            print("连接失败")
+            self.statusBar().showMessage('BLE连接失败')
             pass
         loop.stop()
     async def stopble(self):
@@ -6689,11 +6704,13 @@ class MyWindow(QMainWindow, Ui_MainWindow):
                 await self.client.stop_notify(self.Char_UUID[i])
             await self.client.disconnect()
             QMessageBox.information(self, '提示', 'BLE已断开', QMessageBox.Ok)
+            self.statusBar().showMessage('BLE已断开')
         except:
-            print('断开失败')
+            self.statusBar().showMessage('BLE断开失败')
             pass
         loop.stop()
     def openble(self):
+        self.statusBar().showMessage('正在连接BLE')
         asyncio.set_event_loop(loop)
         asyncio.ensure_future(self.notify())
         loop.run_forever()
@@ -6702,12 +6719,19 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.emit_thread.quit()
         asyncio.ensure_future(self.stopble())
         loop.run_forever()
+    def savenow(self):
+        now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        plt.savefig(now+".png")
+        np.savetxt(now+".csv", self.proj_d)
+        self.statusBar().showMessage('已保存当前数据及成像结果')
     def nowforRefe(self):
         self.refedata = self.projnow
+        self.statusBar().showMessage('已设定当前值为空场值')
     def loadrefe(self):
         try:
             fileName, fileType = QFileDialog.getOpenFileName(self.centralwidget, "select refe data", os.getcwd(), "All Files(*);;Text Files(*.csv)")
             self.refedata = np.loadtxt(fileName, delimiter=",")
+            self.statusBar().showMessage('已设定空场数据')
             QApplication.processEvents()
         except:
             pass
@@ -6715,13 +6739,10 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         try:
             fileName, fileType = QFileDialog.getOpenFileName(self.centralwidget, "select proj data", os.getcwd(), "All Files(*);;Text Files(*.csv)")
             self.projdata = np.loadtxt(fileName, delimiter=",")
+            self.statusBar().showMessage('已设定待成像数据')
             self.image(self.projdata)
         except:
             pass
-    def save(self):
-        now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        plt.savefig(now+".png")
-        np.savetxt(now+".txt", self.proj_d)
     def display(self, n):
         self.select_disp = n
     def algorithm(self, n):
