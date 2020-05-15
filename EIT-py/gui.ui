@@ -48,6 +48,7 @@
      <string>Save</string>
     </property>
     <addaction name="actionFrameNow"/>
+    <addaction name="actionBLEdata"/>
    </widget>
    <widget class="QMenu" name="menuAlgorithm">
     <property name="title">
@@ -198,6 +199,11 @@
   <action name="actionContour_Filling">
    <property name="text">
     <string>Contour Filling</string>
+   </property>
+  </action>
+  <action name="actionBLEdata">
+   <property name="text">
+    <string>BLEdata</string>
    </property>
   </action>
  </widget>
