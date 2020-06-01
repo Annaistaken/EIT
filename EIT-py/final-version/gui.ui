@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1600</width>
+    <height>900</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>EIT</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout"/>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1600</width>
+     <height>18</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionRefe"/>
+    <addaction name="actionData"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuRTR">
+    <property name="title">
+     <string>RTR</string>
+    </property>
+    <addaction name="actionOpenBLE"/>
+    <addaction name="actionNowForRefe"/>
+    <addaction name="actionRun"/>
+    <addaction name="actionStop"/>
+   </widget>
+   <widget class="QMenu" name="menuSave">
+    <property name="title">
+     <string>Save</string>
+    </property>
+    <addaction name="actionFrameNow"/>
+    <addaction name="actionBLEdata"/>
+   </widget>
+   <widget class="QMenu" name="menuAlgorithm">
+    <property name="title">
+     <string>Algorithm</string>
+    </property>
+    <addaction name="actionLBP"/>
+    <addaction name="actionSVD"/>
+    <addaction name="actionNormalized_Sensitivity"/>
+    <addaction name="separator"/>
+    <addaction name="actionCG"/>
+    <addaction name="actionBFGS"/>
+    <addaction name="actionSLSQP"/>
+    <addaction name="actionLanczos"/>
+    <addaction name="separator"/>
+    <addaction name="actionTikhonov"/>
+   </widget>
+   <widget class="QMenu" name="menuDisplay">
+    <property name="title">
+     <string>Display</string>
+    </property>
+    <addaction name="actionFE_Filling"/>
+    <addaction name="actionShading_Interp"/>
+    <addaction name="actionContour_Filling"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuRTR"/>
+   <addaction name="menuAlgorithm"/>
+   <addaction name="menuDisplay"/>
+   <addaction name="menuSave"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionRefe">
+   <property name="text">
+    <string>Refe</string>
+   </property>
+  </action>
+  <action name="actionData">
+   <property name="text">
+    <string>Data</string>
+   </property>
+  </action>
+  <action name="actionOpenBLE">
+   <property name="text">
+    <string>OpenBLE</string>
+   </property>
+  </action>
+  <action name="actionNowForRefe">
+   <property name="text">
+    <string>NowForRefe</string>
+   </property>
+  </action>
+  <action name="actionRun">
+   <property name="text">
+    <string>Run</string>
+   </property>
+  </action>
+  <action name="actionFrameNow">
+   <property name="text">
+    <string>FrameNow</string>
+   </property>
+  </action>
+  <action name="actionStop">
+   <property name="text">
+    <string>Stop</string>
+   </property>
+  </action>
+  <action name="actionProjNow">
+   <property name="text">
+    <string>ProjNow</string>
+   </property>
+  </action>
+  <action name="actionSVD">
+   <property name="text">
+    <string>SVD</string>
+   </property>
+  </action>
+  <action name="actionLBP">
+   <property name="text">
+    <string>LBP</string>
+   </property>
+  </action>
+  <action name="actionNormalized_Sensitivity">
+   <property name="text">
+    <string>Normalized Sensitivity</string>
+   </property>
+  </action>
+  <action name="actionCG">
+   <property name="text">
+    <string>CG</string>
+   </property>
+  </action>
+  <action name="actionBFGS">
+   <property name="text">
+    <string>BFGS</string>
+   </property>
+  </action>
+  <action name="actionSLSQP">
+   <property name="text">
+    <string>SLSQP</string>
+   </property>
+  </action>
+  <action name="actionLanczos">
+   <property name="text">
+    <string>Lanczos</string>
+   </property>
+  </action>
+  <action name="actionTikhonov">
+   <property name="text">
+    <string>Tikhonov regularization</string>
+   </property>
+  </action>
+  <action name="actionLasso">
+   <property name="text">
+    <string>Lasso</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionSensitivityMat">
+   <property name="text">
+    <string>SensitivityMat</string>
+   </property>
+  </action>
+  <action name="actionFE_Filling">
+   <property name="text">
+    <string>FE Filling</string>
+   </property>
+  </action>
+  <action name="actionNephogram">
+   <property name="text">
+    <string>Nephogram</string>
+   </property>
+  </action>
+  <action name="actionIsogram">
+   <property name="text">
+    <string>Isogram</string>
+   </property>
+  </action>
+  <action name="actionShading_Interp">
+   <property name="text">
+    <string>Shading Interp</string>
+   </property>
+  </action>
+  <action name="actionContour_Filling">
+   <property name="text">
+    <string>Contour Filling</string>
+   </property>
+  </action>
+  <action name="actionBLEdata">
+   <property name="text">
+    <string>BLEdata</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
